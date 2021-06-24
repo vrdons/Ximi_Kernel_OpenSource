@@ -4336,6 +4336,8 @@ UINT32 DSI_dcs_read_lcm_reg_v4(enum DISP_MODULE_ENUM module,
 	return recv_data_cnt;
 }
 
+
+
 void DSI_set_cmdq(enum DISP_MODULE_ENUM module, struct cmdqRecStruct *cmdq,
 	unsigned int *pdata, unsigned int queue_size,
 	unsigned char force_update)
@@ -8040,7 +8042,7 @@ void DSI_dynfps_send_cmd(
 	if (sendmode == LCM_SEND_IN_VDO) {
 		DSI_send_vm_cmd(cmdq, DISP_MODULE_DSI0, REGFLAG_ESCAPE_ID,
 		cmd, count, para_list, force_update);
-	} else {
+	} else{
 		DSI_send_cmd_cmd(cmdq, DISP_MODULE_DSI0, false, REGFLAG_ESCAPE_ID,
 		cmd, count, para_list, force_update);
 	}
