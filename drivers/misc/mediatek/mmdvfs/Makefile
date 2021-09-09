@@ -47,7 +47,6 @@ ccflags-y += -DSMI_TAL
 SUPPORT_MMP := true
 FORCE_STEP0 := false
 BUILD_MMDVFS := true
-ccflags-y += -DAUTOK_FORCE_LOW
 else ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6739"))
 BUILD_MMDVFS := true
 else ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6785"))
