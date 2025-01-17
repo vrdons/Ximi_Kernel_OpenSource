@@ -977,6 +977,7 @@ static int disp_ccorr_set_coef
 				ret = disp_ccorr_write_coef_reg(cmdq, module, id, 0);
 			}
 
+
 			mutex_unlock(&g_gamma_global_lock);
 
 			if (old_ccorr != NULL)
