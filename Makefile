@@ -976,6 +976,10 @@ KBUILD_CFLAGS += -DFACTORY_VERSION_ENABLE
 endif
 # =============FACTORY==================================
 
+ifeq ($(strip $(ENABLE_MIUI_DEBUGGING)), true)
+KBUILD_CFLAGS += -DENABLE_MIUI_DEBUGGING
+endif
+
 # =============PROJECT==================================
 # Add macros by TARGET_PRODUCT for different projects
 ifeq ($(strip $(TARGET_PRODUCT)) , lancelot)
@@ -985,6 +989,11 @@ else ifeq ($(strip $(TARGET_PRODUCT)) , shiva)
 # Define macros here only for shiva project
 KBUILD_CFLAGS += -DTARGET_PRODUCT_SHIVA
 else
+endif
+
+ifeq ($(strip $(TARGET_PRODUCT)) , selene)
+# Define macros here only for selene project
+KBUILD_CFLAGS += -DTARGET_PRODUCT_SELENE
 endif
 
 ifneq (,$(filter merlin merlinin merlinnfc, $(TARGET_PRODUCT)))
