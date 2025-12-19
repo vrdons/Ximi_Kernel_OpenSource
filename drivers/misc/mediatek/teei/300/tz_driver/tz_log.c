@@ -220,9 +220,9 @@ int teei_log_fn(void *work)
 		if (retVal != 0)
 			continue;
 #ifdef CONFIG_MICROTRUST_TZ_LOG
-		//spin_lock_irqsave(&s->lock, flags);
+		spin_lock_irqsave(&s->lock, flags);
 		tz_driver_dump_logs(s);
-		//spin_unlock_irqrestore(&s->lock, flags);
+		spin_unlock_irqrestore(&s->lock, flags);
 #endif
 	}
 
@@ -435,4 +435,3 @@ int tz_log_remove(struct platform_device *pdev)
 
 	return 0;
 }
-
