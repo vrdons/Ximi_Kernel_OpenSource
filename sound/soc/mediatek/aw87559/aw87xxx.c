@@ -1469,6 +1469,7 @@ static const struct i2c_device_id aw87xxx_i2c_id[] = {
 
 static const struct of_device_id extpa_of_match[] = {
 	{.compatible = "awinic,aw87559_pa_58"},
+	{.compatible = "awinic,aw87359_pa_59"},
 	{},
 };
 
