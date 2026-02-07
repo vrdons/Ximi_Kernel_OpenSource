@@ -17,6 +17,7 @@
 #include "../../codecs/mt6358.h"
 #include "../common/mtk-sp-spk-amp.h"
 #include "../fs1815n/fsm_public.h"
+#include "../fs1815n/fsm-dev.h"
 /*
  * if need additional control for the ext spk amp that is connected
  * after Lineout Buffer / HP Buffer on the codec, put the control in
@@ -223,7 +224,7 @@ static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
 #endif
 		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
 #ifdef CONFIG_SND_SOC_FS16XX
-			fsm_speaker_off();
+			fsm_speaker_onn(FSM_SCENE_MUSIC);
 #endif
 		} else {
 #ifdef CONFIG_SND_SOC_AW87519
@@ -241,7 +242,7 @@ static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
 #endif
 		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
 #ifdef CONFIG_SND_SOC_FS16XX
-			fsm_speaker_onn();
+			fsm_speaker_off();
 #endif
 		} else {
 #ifdef CONFIG_SND_SOC_AW87519
@@ -272,21 +273,41 @@ static int mt6768_mt6358_rcv_amp_event(struct snd_soc_dapm_widget *w,
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
 		/* spk amp on control */
-		if (rcv_amp_mode) {
+		if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
 #ifdef CONFIG_SND_SOC_AW87559
-			aw87xxx_audio_scene_load(AW87XXX_RCV_MODE, AW87XXX_LEFT_CHANNEL);
+			if (rcv_amp_mode) {
+				aw87xxx_audio_scene_load(AW87XXX_RCV_MODE, AW87XXX_LEFT_CHANNEL);
+			} else {
+				aw87xxx_audio_scene_load(AW87XXX_MUSIC_MODE, AW87XXX_LEFT_CHANNEL);
+			};
+#endif
+		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
+#ifdef CONFIG_SND_SOC_FS16XX
+			if (rcv_amp_mode) {
+				fsm_speaker_onn(FSM_SCENE_RCV);
+			} else {
+				fsm_speaker_onn(FSM_SCENE_MUSIC);
+			};
 #endif
 		} else {
-#ifdef CONFIG_SND_SOC_AW87559
-			aw87xxx_audio_scene_load(AW87XXX_MUSIC_MODE, AW87XXX_LEFT_CHANNEL);
-#endif
+			pr_err("Please check out off PA");
 		}
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
 		/* spk amp off control */
+/*K19A code for WXYFB-1001 by zhangpeng at 2021.3.19 start*/
+		if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
 #ifdef CONFIG_SND_SOC_AW87559
-		aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
+			aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
 #endif
+		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
+#ifdef CONFIG_SND_SOC_FS16XX
+			pr_info("%s(), fsm audio off()\n", __func__);
+			fsm_speaker_off();
+#endif
+		} else {
+			pr_err("Please check out off PA");
+		}
 		break;
 	default:
 		break;
