@@ -16,7 +16,7 @@
 #include "mt6768-afe-gpio.h"
 #include "../../codecs/mt6358.h"
 #include "../common/mtk-sp-spk-amp.h"
-
+#include "../fs1815n/fsm_public.h"
 /*
  * if need additional control for the ext spk amp that is connected
  * after Lineout Buffer / HP Buffer on the codec, put the control in
@@ -29,6 +29,10 @@
 #define EXT_RCV_AMP_W_NAME "Ext_Reciver_Amp"
 #endif
 // ALPS05007528 end
+
+static const char *awinic = "awinic";
+static const char *foursemi = "foursemi";
+extern char *get_audio_pa_vendor(void);
 
 static const char *const mt6768_spk_type_str[] = {MTK_SPK_NOT_SMARTPA_STR,
 						  MTK_SPK_RICHTEK_RT5509_STR,
@@ -203,8 +207,7 @@ extern unsigned char aw87519_audio_off(void);
 #endif
 
 static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
-				       struct snd_kcontrol *kcontrol,
-				       int event)
+					struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
@@ -214,21 +217,39 @@ static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
 		/* spk amp on control */
-#ifdef CONFIG_SND_SOC_AW87519
-		aw87519_audio_kspk();
-#endif
+		if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
 #ifdef CONFIG_SND_SOC_AW87559
-	aw87xxx_audio_scene_load(AW87XXX_MUSIC_MODE, AW87XXX_LEFT_CHANNEL);
+			aw87xxx_audio_scene_load(AW87XXX_MUSIC_MODE, AW87XXX_LEFT_CHANNEL);
 #endif
+		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
+#ifdef CONFIG_SND_SOC_FS16XX
+			fsm_speaker_off();
+#endif
+		} else {
+#ifdef CONFIG_SND_SOC_AW87519
+			aw87519_audio_kspk();
+#else
+			pr_err("Please check out start PA");
+#endif
+		}
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
 		/* spk amp off control */
-#ifdef CONFIG_SND_SOC_AW87519
-		aw87519_audio_off();
-#endif
+		if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
 #ifdef CONFIG_SND_SOC_AW87559
-	aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
+			aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
 #endif
+		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
+#ifdef CONFIG_SND_SOC_FS16XX
+			fsm_speaker_onn();
+#endif
+		} else {
+#ifdef CONFIG_SND_SOC_AW87519
+			aw87519_audio_kspk();
+#else
+			pr_err("Please check out start PA");
+#endif
+		}
 		break;
 	default:
 		break;
