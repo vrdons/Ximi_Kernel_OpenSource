@@ -729,7 +729,9 @@ int fsm_reg_dump(fsm_dev_t *fsm_dev)
 			ret |= fsm_access_key(fsm_dev, 1);
 		}
 		ret |= fsm_reg_read(fsm_dev, reg_addr, &value);
-		snprintf(buf+idx*8, LOG_BUF_SIZE, "%02X:%04X ", reg_addr, value);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 start*/
+		snprintf(buf+idx*8, 9, "%02X:%04X ", reg_addr, value);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 end*/
 		idx++;
 		if (idx % 8 == 0 || reg_addr == reg_end) {
 			buf[idx*8-1] = '\0';
@@ -995,11 +997,18 @@ int fsm_parse_preset(const void *data, uint32_t size)
 	crc_size = (size - sizeof(struct preset_header) + 2)/sizeof(uint16_t);
 	if (hdr->size == 0 || hdr->size != size) {
 		pr_err("invalid size: hdr:%d, fw:%d", hdr->size, size);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 start*/
+		fsm_free_mem((void **)&pfile);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 end*/
 		return -EINVAL;
 	}
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 end*/
 	checksum = fsm_calc_checksum((uint16_t *)(&(pfile->hdr.ndev)), crc_size);
 	if (checksum != hdr->crc16) {
 		pr_err("checksum(%04X) not match(%04X)", checksum, hdr->crc16);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 start*/
+		fsm_free_mem((void **)&pfile);
+/*K19A code for HQ-145950 by zhangpeng at 2021.7.12 end*/
 		return -EINVAL;
 	} else {
 		pr_info("checksum success!");
@@ -1618,11 +1627,34 @@ int fsm_agc_mode_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+/*K19A code for WXYFB-1010 by zhangpeng at 2021/4/15 start*/
+int fsm_init_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
+{
+	int state;
+
+	state = (fsm_get_presets() != NULL) ? 1 : 0;
+	pr_info("state:%d", state);
+	ucontrol->value.integer.value[0] = state;
+
+	return 0;
+}
+
+int fsm_init_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
+{
+	fsm_init();
+	return 0;
+}
+/*K19A code for WXYFB-1010 by zhangpeng at 2021/4/15 end*/
+
 const struct snd_kcontrol_new fsm_agc_controls[] = {
 	SOC_SINGLE_EXT("FSM_Scene", SND_SOC_NOPM, 0, FSM_SCENE_MAX, 0,
 			fsm_scene_get, fsm_scene_put),
 	SOC_SINGLE_EXT("FSM_AGC_Control", SND_SOC_NOPM, 0, 1, 0,
 			NULL, fsm_agc_mode_put),
+/*K19A code for WXYFB-1010 by zhangpeng at 2021/4/15 start*/
+	SOC_SINGLE_EXT("FSM_Fw_Init", SND_SOC_NOPM, 0, 1, 0,
+		fsm_init_get, fsm_init_put),
+/*K19A code for WXYFB-1010 by zhangpeng at 2021/4/15 end*/
 };
 
 int fsm_add_control(struct snd_soc_platform *platform)
@@ -1643,6 +1675,10 @@ void fsm_speaker_onn(int mode)
 	int ret;
 
 /*K19A code for HQ-128766 by zhangpeng at 2021.4.3 start*/
+	if (cfg->speaker_on) {
+            pr_info("no need to spk on twice");
+	    return;
+	}
 	cfg->next_scene = mode;
 /*K19A code for HQ-128766 by zhangpeng at 2021.4.3 end*/
 	pr_info("scene: %04X", cfg->next_scene);
@@ -1667,7 +1703,12 @@ void fsm_speaker_off(void)
 	fsm_config_t *cfg = fsm_get_config();
 	fsm_dev_t *fsm_dev = NULL;
 	int ret;
-
+/*K19A code for WXYFB-1010 by xuqingli at 2021/4/20 start*/
+	if (!cfg->speaker_on) {
+            pr_info("no need to spk off twice");
+	    return;
+	    }
+/*K19A code for WXYFB-1010 by xuqingli at 2021/4/20 end*/
 	pr_info("scene: %04X", cfg->next_scene);
 	fsm_mutex_lock();
 	cfg->stream_muted = true;
@@ -1679,8 +1720,11 @@ void fsm_speaker_off(void)
 	}
 	fsm_list_func(fsm_dev, fsm_stub_shut_down);
 	cfg->speaker_on = false;
-	pr_debug("done");
 	fsm_mutex_unlock();
+/*K19A code for HQ-128766 by zhangpeng at 2021.4.3 start*/
+	fsm_set_scene(0);
+	pr_debug("done");
+/*K19A code for HQ-128766 by zhangpeng at 2021.4.3 end*/
 }
 
 void fsm_stereo_rotation(int next_angle)

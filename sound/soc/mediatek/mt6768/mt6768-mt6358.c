@@ -182,24 +182,6 @@ static int mt6768_spk_i2s_in_type_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-#ifdef CONFIG_SND_SOC_AW87559
-enum {
-	AW87XXX_OFF_MODE = 0,
-	AW87XXX_MUSIC_MODE = 1,
-	AW87XXX_VOICE_MODE = 2,
-	AW87XXX_FM_MODE = 3,
-	AW87XXX_RCV_MODE = 4,
-	AW87XXX_MODE_MAX = 5,
-};
-enum {
-	AW87XXX_LEFT_CHANNEL = 0,
-	AW87XXX_RIRHT_CHANNEL = 1,
-};
-
-extern unsigned char aw87xxx_show_current_mode(int32_t channel);
-extern int aw87xxx_audio_scene_load(uint8_t mode, int32_t channel);
-#endif
-
 #ifdef CONFIG_SND_SOC_AW87519
 extern unsigned char aw87519_audio_kspk(void);
 extern unsigned char aw87519_audio_drcv(void);
@@ -239,7 +221,7 @@ static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
 		if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
 #ifdef CONFIG_SND_SOC_AW87559
 			aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
-#endif
+			#endif
 		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
 #ifdef CONFIG_SND_SOC_FS16XX
 			fsm_speaker_off();
@@ -302,7 +284,6 @@ static int mt6768_mt6358_rcv_amp_event(struct snd_soc_dapm_widget *w,
 #endif
 		} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
 #ifdef CONFIG_SND_SOC_FS16XX
-			pr_info("%s(), fsm audio off()\n", __func__);
 			fsm_speaker_off();
 #endif
 		} else {
@@ -353,7 +334,7 @@ static const struct snd_kcontrol_new mt6768_mt6358_controls[] = {
 		     mt6768_rcv_amp_mode_get, mt6768_rcv_amp_mode_set),
 #endif
 // ALPS05007528 end
-			 SOC_ENUM_EXT("MTK_SPK_TYPE_GET", mt6768_spk_type_enum[0],
+	SOC_ENUM_EXT("MTK_SPK_TYPE_GET", mt6768_spk_type_enum[0],
 		     mt6768_spk_type_get, NULL),
 	SOC_ENUM_EXT("MTK_SPK_I2S_OUT_TYPE_GET", mt6768_spk_type_enum[1],
 		     mt6768_spk_i2s_out_type_get, NULL),
