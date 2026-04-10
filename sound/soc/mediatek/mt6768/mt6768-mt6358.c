@@ -228,7 +228,7 @@ static int mt6768_mt6358_spk_amp_event(struct snd_soc_dapm_widget *w,
 #endif
 		} else {
 #ifdef CONFIG_SND_SOC_AW87519
-			aw87519_audio_kspk();
+			aw87519_audio_off();
 #else
 			pr_err("Please check out start PA");
 #endif
